@@ -15,41 +15,75 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
 ####
+# Column class has attributes for parsed data
+####
+class Column:
+
+	# Constructor
+	def __init__(self):
+		return
+
+####
 # Function parses from Morphobank file
+# ---
+# RETURNS: 
+# A dict of parsed data with keys {'taxa', 'labels', 'states', 'matrices'}
 ####
 def parse(path):
+	data = {}      # Dictionary of data
+	taxa = []      # List of taxa (rows)
+	labels = []    # List of labels
+	states = []    # List of states
+	matrices = []  # List of matrices
 
-	print('---\n\nParsing ' + path + '...\n')
+	print('======\n\nParsing ' + path + '...\n')
+
 	# Get relevant data from file
 	with codecs.open(path, "r", encoding='utf-8', errors='ignore') as f:
-	    data = f.read().split('BEGIN')[1:3]
+	    contents = f.read().split('BEGIN')[1:3]
 
  	# Get TAXA data
-	taxa_data = data[0].split('\n')[2:]  # Skip preamble
-	taxa = []
+	taxa_data = contents[0].split('\n')[2:]  # Skip preamble
 
 	# Parse the labels
-	print('Parsing TAXA data...\n')
+	print('\tParsing TAXA data...')
 
 	for line in taxa_data:
 		if "\t\t" in line:
-			taxa.append(line.replace('\t\t', '').replace('\'', ''))
+			taxa.append(str(line.replace('\t\t', '').replace('\'', '')))
 
 	print(taxa)
 
 	# Get CHARACTERS data
-	chars_data = data[1].split('\n')[5:]  # Skip preamble
-	headers = ''.join(chars_data).split('\t;')  # Parse headers
-	char_labels = headers[0]
-	state_labels = headers[1]
+	chars_data = contents[1].split('\n')[5:]  # Skip preamble
+	headers = ''.join(chars_data).split('\t;')  # Parse headers (labels, states, matrices)
+
+	# Preprocess header strings
+	char_labels = headers[0].split('\t')
+	state_labels = headers[1].replace('STATELABELS', '').split(',')
 	matrix = headers[2]
 
-	print('---\n\nParsing CHARACTERS data...\n')
-	print(state_labels)
-	print('\n------------------\n')
+	# Parse CHARLABELS data (labels)
+	print('\n---\n\tParsing CHARLABELS data...')
+
+	for label in char_labels:
+		cleaned = re.sub('\[[0-9]*\]', '', label).replace("'", '')
+
+		if cleaned != '':
+			labels.append(cleaned[2:])
+
+	print(labels)
+
+	# Parse STATELABELS data (states)
+	print('\n---\n\tParsing STATELABELS data...')
+
+	for state in state_labels:
+		print(re.sub('[0-9]*\t' ,'', state))
 
 ####
 # Main
 ####
+columns = []  # List of columns
+
 for f in sys.argv[1].split(', '):
 	parse(f)
