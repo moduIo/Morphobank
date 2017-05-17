@@ -78,7 +78,17 @@ def parse(path):
 	print('\n---\n\tParsing STATELABELS data...')
 
 	for state in state_labels:
-		print(re.sub('[0-9]*\t' ,'', state))
+		values = []  # Values that current label can assume
+		cleaned = re.sub('[0-9]*\t' ,'', state).split("'")
+
+		# Iterate over each substring
+		for entry in cleaned:
+			if entry != '':
+				values.append(entry)
+
+		states.append(values)
+
+	print(states)
 
 ####
 # Main
