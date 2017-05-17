@@ -8,6 +8,7 @@
 # Ex: python3 exploratory_clustering.py 'Morphobank/P104mbank_X425_2-2-2017_84_no_notes.txt, Morphobank/P157mbank_X430_2-2-2017_82_no_notes.txt'
 ####
 import sys
+import re
 import codecs
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ def parse(path):
 	    data = f.read().split('BEGIN')[1:3]
 
  	# Get TAXA data
-	taxa_data = data[0].split('\n')[2:]
+	taxa_data = data[0].split('\n')[2:]  # Skip preamble
 	taxa = []
 
 	# Parse the labels
@@ -37,8 +38,15 @@ def parse(path):
 	print(taxa)
 
 	# Get CHARACTERS data
+	chars_data = data[1].split('\n')[5:]  # Skip preamble
+	headers = ''.join(chars_data).split('\t;')  # Parse headers
+	char_labels = headers[0]
+	state_labels = headers[1]
+	matrix = headers[2]
+
 	print('---\n\nParsing CHARACTERS data...\n')
-	print(data[1] + '\n')
+	print(state_labels)
+	print('\n------------------\n')
 
 ####
 # Main
