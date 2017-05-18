@@ -68,7 +68,7 @@ def parse(path):
 
 	# Preprocess header strings
 	char_labels = headers[0].split('\t')
-	state_labels = headers[1].replace('STATELABELS', '').split(',')
+	state_labels = headers[1].replace('STATELABELS', '').split('\t\t,')
 	matrix = headers[2]
 
 	# Parse CHARLABELS data (labels)
@@ -84,6 +84,7 @@ def parse(path):
 	print('\tParsing STATELABELS data...')
 
 	for state in state_labels:
+
 		values = []  # Values that current label can assume
 		cleaned = re.sub('[0-9]*\t' ,'', state).split("'")
 
@@ -100,9 +101,12 @@ def parse(path):
 # Main
 ####
 columns = []  # List of columns
+datas = []  # List of parsed data
 
 for f in sys.argv[1].split(', '):
-	data = parse(f)
+	datas.append(parse(f))
+
+for data in datas:
 
 	# Store data into columns
 	for i, state, in enumerate(data['states']):
@@ -111,7 +115,10 @@ for f in sys.argv[1].split(', '):
 		column.set_labels(data['labels'][i])
 		columns.append(column)
 
-for column in columns:
+print("\nPrinting columns...\n")
+
+for i, column in enumerate(columns):
+	print(i + 1)
 	print(column.labels)
 	print(column.states)
 	print('\n')
