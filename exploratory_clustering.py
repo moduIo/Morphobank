@@ -1,5 +1,7 @@
 ####
 # Runs clustering algorithms on features parsed from Morphobank examples.
+# Data is parsed into Column objects which represent the column schema without any instance data.
+#
 # Implements: K-means
 # ---
 # COMMAND LINE ARGUMENTS:
@@ -19,9 +21,12 @@ from sklearn.cluster import KMeans
 ####
 class Column:
 
-	# Constructor
-	def __init__(self):
-		return
+	# Setters
+	def set_labels(self, labels):
+		self.labels = labels
+
+	def set_states(self, states):
+		self.states = states
 
 ####
 # Function parses from Morphobank file
@@ -30,13 +35,18 @@ class Column:
 # A dict of parsed data with keys {'taxa', 'labels', 'states', 'matrices'}
 ####
 def parse(path):
-	data = {}      # Dictionary of data
 	taxa = []      # List of taxa (rows)
 	labels = []    # List of labels
 	states = []    # List of states
 	matrices = []  # List of matrices
 
-	print('======\n\nParsing ' + path + '...\n')
+	# Dictionary of data
+	data = {'taxa': taxa, 
+			'labels': labels, 
+			'states': states, 
+			'matrices': matrices}
+
+	print('======\n\nParsing ' + path + '...')
 
 	# Get relevant data from file
 	with codecs.open(path, "r", encoding='utf-8', errors='ignore') as f:
@@ -52,8 +62,6 @@ def parse(path):
 		if "\t\t" in line:
 			taxa.append(str(line.replace('\t\t', '').replace('\'', '')))
 
-	print(taxa)
-
 	# Get CHARACTERS data
 	chars_data = contents[1].split('\n')[5:]  # Skip preamble
 	headers = ''.join(chars_data).split('\t;')  # Parse headers (labels, states, matrices)
@@ -64,7 +72,7 @@ def parse(path):
 	matrix = headers[2]
 
 	# Parse CHARLABELS data (labels)
-	print('\n---\n\tParsing CHARLABELS data...')
+	print('\tParsing CHARLABELS data...')
 
 	for label in char_labels:
 		cleaned = re.sub('\[[0-9]*\]', '', label).replace("'", '')
@@ -72,10 +80,8 @@ def parse(path):
 		if cleaned != '':
 			labels.append(cleaned[2:])
 
-	print(labels)
-
 	# Parse STATELABELS data (states)
-	print('\n---\n\tParsing STATELABELS data...')
+	print('\tParsing STATELABELS data...')
 
 	for state in state_labels:
 		values = []  # Values that current label can assume
@@ -88,7 +94,7 @@ def parse(path):
 
 		states.append(values)
 
-	print(states)
+	return data
 
 ####
 # Main
@@ -96,4 +102,16 @@ def parse(path):
 columns = []  # List of columns
 
 for f in sys.argv[1].split(', '):
-	parse(f)
+	data = parse(f)
+
+	# Store data into columns
+	for i, state, in enumerate(data['states']):
+		column = Column()
+		column.set_states(state)
+		column.set_labels(data['labels'][i])
+		columns.append(column)
+
+for column in columns:
+	print(column.labels)
+	print(column.states)
+	print('\n')
