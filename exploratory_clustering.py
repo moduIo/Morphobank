@@ -22,6 +22,9 @@ from sklearn.cluster import KMeans
 class Column:
 
 	# Setters
+	def set_source(self, source):
+		self.source = source
+
 	def set_labels(self, labels):
 		self.labels = labels
 
@@ -100,25 +103,25 @@ def parse(path):
 ####
 # Main
 ####
-columns = []  # List of columns
+sources = []  # List of source matrices
+columns = []  # List of Column()
 datas = []  # List of parsed data
 
 for f in sys.argv[1].split(', '):
 	datas.append(parse(f))
+	sources.append(f.split('_')[0].replace('Morphobank/', ''))
 
-for data in datas:
+for i, data in enumerate(datas):
 
-	# Store data into columns
-	for i, state, in enumerate(data['states']):
+	# Store data into Column()
+	for j, state, in enumerate(data['states']):
 		column = Column()
+		column.set_source(sources[i])
 		column.set_states(state)
-		column.set_labels(data['labels'][i])
+		column.set_labels(data['labels'][j])
 		columns.append(column)
 
 print("\nPrinting columns...\n")
 
 for i, column in enumerate(columns):
-	print(i + 1)
-	print(column.labels)
-	print(column.states)
-	print('\n')
+	print('ID: ' + str(column.source) + ' ' + str(i + 1) + ' | Label: ' + str(column.labels) + '\nStates: ' + str(column.states) + '\n')
