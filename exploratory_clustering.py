@@ -133,7 +133,7 @@ for i, data in enumerate(datas):
 
 		# Get trigrams
 		column.set_labels_trigram(trigrams(str(column.labels)))
-		column.set_states_trigram(trigrams(str(column.states)))
+		column.set_states_trigram(trigrams(" ".join(column.states)))
 
 		# Add column
 		columns.append(column)
