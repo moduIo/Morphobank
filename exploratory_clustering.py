@@ -6,8 +6,10 @@
 # ---
 # COMMAND LINE ARGUMENTS:
 # sys.argv[1] := a CSV list of paths to Morphobank files
+# sys.argv[2] := 'printCols'
 #
-# Ex: python3 exploratory_clustering.py 'Morphobank/P104mbank_X425_2-2-2017_84_no_notes.txt, Morphobank/P157mbank_X430_2-2-2017_82_no_notes.txt'
+# Ex: 
+# python3 exploratory_clustering.py 'Morphobank/P104mbank_X425_2-2-2017_84_no_notes.txt, Morphobank/P157mbank_X430_2-2-2017_82_no_notes.txt' 'printCols'
 ####
 import sys
 import re
@@ -15,6 +17,9 @@ import codecs
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+import nltk
+from nltk import word_tokenize
+from nltk.util import trigrams
 
 ####
 # Column class has attributes for parsed data
@@ -30,6 +35,12 @@ class Column:
 
 	def set_states(self, states):
 		self.states = states
+
+	def set_labels_trigram(self, trigram):
+		self.labels_trigram = trigram
+
+	def set_states_trigram(self, trigram):
+		self.states_trigram = trigram
 
 ####
 # Function parses from Morphobank file
@@ -105,23 +116,37 @@ def parse(path):
 ####
 sources = []  # List of source matrices
 columns = []  # List of Column()
-datas = []  # List of parsed data
+datas = []    # List of parsed data
 
+# Parse each input file
 for f in sys.argv[1].split(', '):
 	datas.append(parse(f))
 	sources.append(f.split('_')[0].replace('Morphobank/', ''))
 
+# Store data into Column() objects
 for i, data in enumerate(datas):
-
-	# Store data into Column()
 	for j, state, in enumerate(data['states']):
 		column = Column()
 		column.set_source(sources[i])
 		column.set_states(state)
 		column.set_labels(data['labels'][j])
+
+		# Get trigrams
+		column.set_labels_trigram(trigrams(str(column.labels)))
+		column.set_states_trigram(trigrams(str(column.states)))
+
+		# Add column
 		columns.append(column)
 
-print("\nPrinting columns...\n")
+# Print data
+if sys.argv[2] == 'printCols':
+	print("\nPrinting columns...\n")
 
-for i, column in enumerate(columns):
-	print('ID: ' + str(column.source) + ' ' + str(i + 1) + ' | Label: ' + str(column.labels) + '\nStates: ' + str(column.states) + '\n')
+	for i, column in enumerate(columns):
+		print('ID: ' + str(column.source) + ' ' + str(i + 1) + '\nLabel: ' + str(column.labels) + '\nStates: ' + str(column.states))
+		print('Label Trigrams: ') 
+		print(list(column.labels_trigram))
+		print('\nState Trigrams: ' )
+		print(list(column.states_trigram))
+		print('---\n')
+
