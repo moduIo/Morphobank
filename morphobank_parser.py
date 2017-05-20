@@ -185,6 +185,7 @@ def jaccardSimilarity(A, B):
 
 ####
 # Main method stores parsed data and trigrams into column objects.
+# Features are then generated and output in CSV format to the given filepath.
 # Data is output if required.
 ####
 sources = []  # List of source matrices
