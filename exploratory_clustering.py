@@ -1,14 +1,15 @@
 ####
 # Runs clustering algorithms on features parsed from Morphobank examples.
 # Data is parsed into Column objects which represent the column schema without any instance data.
+# Next features are extracted from the data.
 #
 # Implements: K-means
 # ---
 # COMMAND LINE ARGUMENTS:
 # sys.argv[1] := a CSV list of paths to Morphobank files
-# sys.argv[2] := 'printCols'
+# sys.argv[2] := 'printCols' outputs the results of parsing
 #
-# Ex: 
+# Example Usage: 
 # python3 exploratory_clustering.py 'Morphobank/P104mbank_X425_2-2-2017_84_no_notes.txt, Morphobank/P157mbank_X430_2-2-2017_82_no_notes.txt' 'printCols'
 ####
 import sys
@@ -26,21 +27,31 @@ from nltk.util import trigrams
 ####
 class Column:
 
-	# Setters
-	def set_source(self, source):
+	####
+	# Constructor computes trigrams of labels and states
+	# ---
+	# INPUT: 
+	# source := Source matrix name
+	# labels := Label name
+	# states := List of states
+	####
+	def __init__(self, source, labels, states):
 		self.source = source
-
-	def set_labels(self, labels):
 		self.labels = labels
-
-	def set_states(self, states):
 		self.states = states
+		self.labels_trigram = trigrams(str(self.labels))
+		self.states_trigram = trigrams(str(self.states))
 
-	def set_labels_trigram(self, trigram):
-		self.labels_trigram = trigram
+###
+# Sample class has attributes for (x, y) training data.
+###
+class Sample:
 
-	def set_states_trigram(self, trigram):
-		self.states_trigram = trigram
+	####
+	# Constructor
+	####
+	def __init__(self, columns):
+		self.Greeting = Name + "!"
 
 ####
 # Function parses from Morphobank file
@@ -112,7 +123,8 @@ def parse(path):
 	return data
 
 ####
-# Main
+# Main method stores parsed data and trigrams into column objects.
+# Data is output if required.
 ####
 sources = []  # List of source matrices
 columns = []  # List of Column()
@@ -126,16 +138,7 @@ for f in sys.argv[1].split(', '):
 # Store data into Column() objects
 for i, data in enumerate(datas):
 	for j, state, in enumerate(data['states']):
-		column = Column()
-		column.set_source(sources[i])
-		column.set_states(state)
-		column.set_labels(data['labels'][j])
-
-		# Get trigrams
-		column.set_labels_trigram(trigrams(str(column.labels)))
-		column.set_states_trigram(trigrams(" ".join(column.states)))
-
-		# Add column
+		column = Column(sources[i], state, data['labels'][j])
 		columns.append(column)
 
 # Print data
@@ -143,10 +146,11 @@ if sys.argv[2] == 'printCols':
 	print("\nPrinting columns...\n")
 
 	for i, column in enumerate(columns):
-		print('ID: ' + str(column.source) + ' ' + str(i + 1) + '\nLabel: ' + str(column.labels) + '\nStates: ' + str(column.states))
+		print('ID: ' + str(column.source) + ' ' + str(i + 1))
+		print('Label: ' + str(column.labels))
+		print('\nStates: ' + str(column.states))
 		print('Label Trigrams: ') 
 		print(list(column.labels_trigram))
 		print('\nState Trigrams: ' )
 		print(list(column.states_trigram))
 		print('---\n')
-
