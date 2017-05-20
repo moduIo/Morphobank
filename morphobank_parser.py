@@ -1,24 +1,21 @@
 ####
-# Runs clustering algorithms on features parsed from Morphobank examples.
-# Data is parsed into Column objects which represent the column schema without any instance data.
-# Next features are extracted from the data.
+# Data is parsed from Morphobank files into Column objects which represent the column schema without any instance data.
+# Next features are extracted from the data by comparing column trigrams from different matrices.
+# The features are then stored in a CSV file for future processing.
 #
-# Implements: K-means
 # ---
 # COMMAND LINE ARGUMENTS:
 # sys.argv[1] := a CSV list of paths to Morphobank files
 # sys.argv[2] := 'printCols' outputs the results of parsing
 # sys.argv[3] := 'printFeatures' outputs the results of feature generation
+# sys.argv[4] := a valid filepath to write the features in CSV format to
 #
 # Example Usage: 
-# python3 exploratory_clustering.py 'Morphobank/P104mbank_X425_2-2-2017_84_no_notes.txt, Morphobank/P157mbank_X430_2-2-2017_82_no_notes.txt' 'printCols' 'printFeatures'
+# python3 morphobank_parser.py 'Morphobank/P104mbank_X425_2-2-2017_84_no_notes.txt, Morphobank/P157mbank_X430_2-2-2017_82_no_notes.txt' 'printCols' 'printFeatures' 'features.txt'
 ####
 import sys
 import re
 import codecs
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
 import nltk
 from nltk import word_tokenize
 from nltk.util import trigrams
@@ -142,7 +139,8 @@ def parse(path):
 # A list of Feature() instances
 ####
 def generateFeatures(columns):
-	features = []  # List of Feature() instances
+	features = []   # List of Feature() instances
+	generated = []  # List of matrices which have already generated features, format is (A, B)
 
 	# Iterate over each pair of distinct matrices
 	for A in sorted(columns):
@@ -150,6 +148,10 @@ def generateFeatures(columns):
 
 			# Do not compute metrics between the same matrix
 			if A == B:
+				continue
+
+			# Do not compute the same data twice
+			if '(' + A + ' x ' + B + ')' in generated or '(' + B + ' x ' + A + ')' in generated:
 				continue
 
 			# Compute metrics over each pair of columns in the matrices
@@ -160,6 +162,8 @@ def generateFeatures(columns):
 					ID = a.source + ' x ' + b.source
 					feature = Feature(ID, jaccardSimilarity(a.labels_trigram, b.labels_trigram), jaccardSimilarity(a.states_trigram, b.states_trigram))
 					features.append(feature)
+
+			generated.append('(' + A + ' x ' + B + ')')
 
 	return features
 
@@ -174,8 +178,8 @@ def generateFeatures(columns):
 # The computed Jaccard Similarity
 ###
 def jaccardSimilarity(A, B):
-	union = list(set().union(A, B))
-	intersection = list(set(A).intersection(B))
+	union = set().union(A, B)
+	intersection = set(A).intersection(B)
 
 	return len(intersection) / len(union)
 
@@ -226,3 +230,8 @@ if sys.argv[3] == 'printFeatures':
 		print('ID: ' + feature.ID)
 		print('Jaccard Label Similarity: ' + str(feature.jaccard_label_similarity))
 		print('Jaccard State Similarity: ' + str(feature.jaccard_state_similarity) + '\n---\n')
+
+# Write features to CSV file
+with open(sys.argv[4], 'w+') as f: 
+	for feature in features:
+		f.write(str(feature.jaccard_label_similarity) + ', ' + str(feature.jaccard_state_similarity) + '\n')
