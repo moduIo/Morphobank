@@ -40,7 +40,7 @@ class Column:
 		self.labels = labels
 		self.states = states
 		self.labels_trigram = trigrams(str(self.labels))
-		self.states_trigram = trigrams(str(self.states))
+		self.states_trigram = trigrams(" ".join(self.states))
 
 ###
 # Sample class has attributes for (x, y) training data.
@@ -138,7 +138,7 @@ for f in sys.argv[1].split(', '):
 # Store data into Column() objects
 for i, data in enumerate(datas):
 	for j, state, in enumerate(data['states']):
-		column = Column(sources[i], state, data['labels'][j])
+		column = Column(sources[i], data['labels'][j], state)
 		columns.append(column)
 
 # Print data
@@ -148,7 +148,7 @@ if sys.argv[2] == 'printCols':
 	for i, column in enumerate(columns):
 		print('ID: ' + str(column.source) + ' ' + str(i + 1))
 		print('Label: ' + str(column.labels))
-		print('\nStates: ' + str(column.states))
+		print('States: ' + str(column.states))
 		print('Label Trigrams: ') 
 		print(list(column.labels_trigram))
 		print('\nState Trigrams: ' )
