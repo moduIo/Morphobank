@@ -34,7 +34,7 @@ centroids = kmeans.cluster_centers_
 plt.xlabel('Jaccard Label Similarity')
 plt.ylabel('Jaccard State Similarity')
 plt.scatter(centroids[:, 0], centroids[:, 1],
-            marker='x', s=169, linewidths=3,
+            marker='x', s=169, linewidths=2,
             color='w', zorder=10)
 plt.scatter(X[:, 0], X[:, 1], c = clusters)
 
