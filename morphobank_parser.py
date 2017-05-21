@@ -124,7 +124,7 @@ def parse(path):
 			if entry != '':
 				values.append(entry)
 
-		states.append(values)
+		states.append(sorted(values))
 
 	return data
 
