@@ -12,6 +12,7 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import style
 style.use("ggplot")
 from sklearn.cluster import KMeans
@@ -20,7 +21,7 @@ from sklearn.cluster import KMeans
 # Main
 ###
 # Load data
-data = np.loadtxt(open(sys.argv[1]), delimiter=',')
+data = np.loadtxt(open(sys.argv[1]), delimiter = ',')
 
 # Store into numpy array
 X = np.array(data)
@@ -31,11 +32,14 @@ clusters = kmeans.fit_predict(X)
 centroids = kmeans.cluster_centers_
 
 # Generate plot
-plt.xlabel('Jaccard Label Similarity')
-plt.ylabel('Jaccard State Similarity')
-plt.scatter(centroids[:, 0], centroids[:, 1],
-            marker='x', s=169, linewidths=2,
-            color='w', zorder=10)
-plt.scatter(X[:, 0], X[:, 1], c = clusters)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection = '3d')
+ax.scatter(centroids[:, 0], centroids[:, 1], centroids[:, 2],
+            marker = 'x', s = 169, linewidths = 2,
+            color = 'w', zorder = 10)
+ax.scatter(X[:, 0], X[:, 1], X[:, 2], c = clusters)
+ax.set_xlabel('Jaccard Label Similarity')
+ax.set_ylabel('Jaccard State Similarity')
+ax.set_zlabel('TF-IDF Cosine Similarity')
 
 plt.show()
