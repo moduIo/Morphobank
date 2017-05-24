@@ -16,6 +16,8 @@
 import sys
 import re
 import codecs
+import math
+import numpy as np
 import nltk
 from nltk import word_tokenize
 from nltk.util import trigrams
@@ -63,11 +65,13 @@ class Feature:
 	# ID := ID string of the form 'columnSourceA' x 'columnSourceB'
 	# jaccard_label_similarity := Computed label similarity, a float
 	# jaccard_state_similarity := Computed state similarity, a float
+	# cosine_similarity := Computed similarity using TF-IDF vectors
 	####
-	def __init__(self, ID, jaccard_label_similarity, jaccard_state_similarity):
+	def __init__(self, ID, jaccard_label_similarity, jaccard_state_similarity, cosine_similarity):
 		self.ID = ID
 		self.jaccard_label_similarity = jaccard_label_similarity
 		self.jaccard_state_similarity = jaccard_state_similarity
+		self.cosine_similarity = cosine_similarity
 
 ####
 # Function parses from Morphobank file
@@ -170,7 +174,7 @@ def generateFeatures(columns):
 
 					# Create ID for feature
 					ID = a.source + ' x ' + b.source
-					feature = Feature(ID, jaccardSimilarity(a.labels_trigram, b.labels_trigram), jaccardSimilarity(a.states_trigram, b.states_trigram))
+					feature = Feature(ID, jaccardSimilarity(a.labels_trigram, b.labels_trigram), jaccardSimilarity(a.states_trigram, b.states_trigram), cosineSimilarity(a.tfidf, b.tfidf))
 					features.append(feature)
 
 			generated.append('(' + A + ' x ' + B + ')')
@@ -194,6 +198,33 @@ def jaccardSimilarity(A, B):
 	return len(intersection) / len(union)
 
 ####
+# Function computes the Cosine Similarity between two TF-IDF vectors.
+# ---
+# INPUT:
+# A, B := TF-IDF vectors
+#
+# RETURNS:
+# The computed Cosine Similarity
+####
+def cosineSimilarity(A, B):
+	A = A.todense().tolist()[0]
+	B = B.todense().tolist()[0]
+
+	return dot(A, B)
+
+####
+# Function computes the dot product between two vectors represented as lists
+# ---
+# INPUT:
+# A, B := List representations of vectors
+#
+# RETURNS:
+# The dot product between the two vectors
+####
+def dot(A, B):
+	return sum([i * j for (i, j) in zip(A, B)])
+
+####
 # Main method stores parsed data and trigrams into column objects.
 # Features are then generated and output in CSV format to the given filepath.
 # Data is output if required.
@@ -201,7 +232,7 @@ def jaccardSimilarity(A, B):
 sources = []  # List of source matrices
 columns = {}  # Dict of Column() lists, key is the source name
 datas = []    # List of parsed data from each source matrix
-corpus = []   # List of state strings used for TFIDF
+corpus = []   # List of state strings used for TF-IDF
 ID = 0        # Used to track order of Column() creation
 
 # Parse each input file
@@ -225,7 +256,7 @@ for i, data in enumerate(datas):
 # Vectorize corpus and compute TF-IDF
 vectorizer = CountVectorizer(ngram_range=(1, 3), token_pattern=r'\b\w+\b', min_df=1)
 X = vectorizer.fit_transform(corpus)
-transformer = TfidfTransformer(smooth_idf=False)
+transformer = TfidfTransformer(smooth_idf=False, norm='l2')
 tfidf = transformer.fit_transform(X)
 
 # Add TF-IDF vector to Column() objects
@@ -258,10 +289,10 @@ if sys.argv[3] == 'printFeatures':
 	for feature in features:
 		print('ID: ' + feature.ID)
 		print('Jaccard Label Similarity: ' + str(feature.jaccard_label_similarity))
-		print('Jaccard State Similarity: ' + str(feature.jaccard_state_similarity) + '\n---\n')
+		print('Jaccard State Similarity: ' + str(feature.jaccard_state_similarity))
+		print('Cosine TF-IDF Similarity: ' + str(feature.cosine_similarity) + '\n---\n')
 
 # Write features to CSV file
 with open(sys.argv[4], 'w+') as f: 
 	for feature in features:
-		f.write(str(feature.jaccard_label_similarity) + ', ' + str(feature.jaccard_state_similarity) + '\n')
-'''
+		f.write(str(feature.jaccard_label_similarity) + ', ' + str(feature.jaccard_state_similarity) + ', ' + str(feature.cosine_similarity) + '\n')
