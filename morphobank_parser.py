@@ -2,7 +2,6 @@
 # Data is parsed from Morphobank files into Column objects which represent the column schema without any instance data.
 # Next features are extracted from the data by comparing column trigrams from different matrices.
 # The features are then stored in a CSV file for future processing.
-#
 # ---
 # COMMAND LINE ARGUMENTS:
 # sys.argv[1] := a CSV list of paths to Morphobank files
