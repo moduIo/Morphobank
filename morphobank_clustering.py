@@ -6,7 +6,7 @@
 # sys.argv[2] := k, the number of clusters
 #
 # Example Usage: 
-# python3 morphobank_learner.py 'features.txt' '10'
+# python3 morphobank_clustering.py 'features.txt' '10'
 ####
 import sys
 import numpy as np
@@ -20,7 +20,7 @@ from sklearn.cluster import KMeans
 # Main
 ###
 # Load data
-data = np.loadtxt(open(sys.argv[1]), delimiter=',')
+data = np.loadtxt(open(sys.argv[1]), delimiter=',', usecols=(1, 2, 3))
 
 # Store into numpy array
 X = np.array(data)

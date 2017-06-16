@@ -294,4 +294,4 @@ if sys.argv[3] == 'printFeatures':
 # Write features to CSV file
 with open(sys.argv[4], 'w+') as f: 
 	for feature in features:
-		f.write(str(feature.jaccard_label_similarity) + ', ' + str(feature.jaccard_state_similarity) + ', ' + str(feature.cosine_similarity) + '\n')
+		f.write(str(feature.ID) + ', ' + str(feature.jaccard_label_similarity) + ', ' + str(feature.jaccard_state_similarity) + ', ' + str(feature.cosine_similarity) + '\n')
