@@ -261,6 +261,7 @@ tfidf = transformer.fit_transform(X)
 # Add TF-IDF vector to Column() objects
 for source in sorted(columns):
 	for column in columns[source]:
+		print(tfidf[column.ID])
 		column.set_tfidf(tfidf[column.ID])
 
 # Print data

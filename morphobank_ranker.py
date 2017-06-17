@@ -21,7 +21,7 @@ with open(sys.argv[1], newline='') as feature_file:
 		total = float(row[1]) + float(row[2]) + float(row[3])
 
 		# Only add the most promising features to be checked
-		if total > 1.5:
+		if total > 1.5 and float(row[1]) > .1:
 			candidates[row[0]] = total
 
 print(len(candidates))
