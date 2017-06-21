@@ -209,7 +209,7 @@ def cosineSimilarity(A, B):
 	A = A.todense().tolist()[0]
 	B = B.todense().tolist()[0]
 
-	return dot(A, B)
+	return dot(A, B) / (norm(A) * norm(B))
 
 ####
 # Function computes the dot product between two vectors represented as lists
@@ -222,6 +222,23 @@ def cosineSimilarity(A, B):
 ####
 def dot(A, B):
 	return sum([i * j for (i, j) in zip(A, B)])
+
+####
+# Function computes the L2 norm of a vector represented as a list
+# ---
+# INPUT:
+# V := List representation of a vector
+#
+# RETURNS:
+# The L2 norm of the vector
+####
+def norm(V):
+	L2 = 0
+
+	for v in V:
+		L2 += v * v
+
+	return math.sqrt(L2)
 
 ####
 # Main method stores parsed data and trigrams into column objects.
@@ -245,7 +262,7 @@ for i, data in enumerate(datas):
 
 	# Store data into Column() objects
 	for j, state, in enumerate(data['states']):
-		column = Column(ID, sources[i] + str(j + 1), data['labels'][j], state)
+		column = Column(ID, sources[i] + '_' + str(j + 1), data['labels'][j], state)
 		data_columns.append(column)
 		corpus.append(' '.join(state))  # Add concatenated states to corpus
 		ID += 1
@@ -253,9 +270,9 @@ for i, data in enumerate(datas):
 	columns[sources[i]] = data_columns
 
 # Vectorize corpus and compute TF-IDF
-vectorizer = CountVectorizer(ngram_range=(1, 3), token_pattern=r'\b\w+\b', min_df=1)
+vectorizer = CountVectorizer(token_pattern=r'\b\w+\b', min_df=1)
 X = vectorizer.fit_transform(corpus)
-transformer = TfidfTransformer(smooth_idf=False, norm='l2')
+transformer = TfidfTransformer(norm=None, use_idf=True, smooth_idf=True, sublinear_tf=False)
 tfidf = transformer.fit_transform(X)
 
 # Add TF-IDF vector to Column() objects
