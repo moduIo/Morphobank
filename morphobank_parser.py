@@ -45,6 +45,13 @@ class Column:
 		self.labels_trigram = list(trigrams(str(self.labels)))
 		self.states_trigram = list(trigrams(" ".join(self.states)))
 
+		# Add a feature to track strictly Boolean state values
+		if len(self.states) == 2 and self.states[0] == 'absent' and self.states[1] == 'present':
+			self.boolean = 1
+		
+		else:
+			self.boolean = 0
+
 	####
 	# Setters
 	####
@@ -62,12 +69,14 @@ class Feature:
 	# ---
 	# INPUT:
 	# ID := ID string of the form 'columnSourceA' x 'columnSourceB'
+	# boolean := Logical product of the Column() objects boolean attributes
 	# jaccard_label_similarity := Computed label similarity, a float
 	# jaccard_state_similarity := Computed state similarity, a float
 	# cosine_similarity := Computed similarity using TF-IDF vectors
 	####
-	def __init__(self, ID, jaccard_label_similarity, jaccard_state_similarity, cosine_similarity):
+	def __init__(self, ID, boolean, jaccard_label_similarity, jaccard_state_similarity, cosine_similarity):
 		self.ID = ID
+		self.boolean = boolean
 		self.jaccard_label_similarity = jaccard_label_similarity
 		self.jaccard_state_similarity = jaccard_state_similarity
 		self.cosine_similarity = cosine_similarity
@@ -173,7 +182,7 @@ def generateFeatures(columns):
 
 					# Create ID for feature
 					ID = a.source + ' x ' + b.source
-					feature = Feature(ID, jaccardSimilarity(a.labels_trigram, b.labels_trigram), jaccardSimilarity(a.states_trigram, b.states_trigram), cosineSimilarity(a.tfidf, b.tfidf))
+					feature = Feature(ID, a.boolean * b.boolean, jaccardSimilarity(a.labels_trigram, b.labels_trigram), jaccardSimilarity(a.states_trigram, b.states_trigram), cosineSimilarity(a.tfidf, b.tfidf))
 					features.append(feature)
 
 			generated.append('(' + A + ' x ' + B + ')')
@@ -296,6 +305,8 @@ if sys.argv[2] == 'printCols':
 			print(column.states_trigram)
 			print('\nTF-IDF: ')
 			print(column.tfidf)
+			print('\nBoolean State values: ')
+			print(column.boolean)
 			print('---\n')
 
 # Generate features
@@ -305,6 +316,7 @@ features = generateFeatures(columns)
 if sys.argv[3] == 'printFeatures':
 	for feature in features:
 		print('ID: ' + feature.ID)
+		print('Boolean States: ' + str(feature.boolean))
 		print('Jaccard Label Similarity: ' + str(feature.jaccard_label_similarity))
 		print('Jaccard State Similarity: ' + str(feature.jaccard_state_similarity))
 		print('Cosine TF-IDF Similarity: ' + str(feature.cosine_similarity) + '\n---\n')
@@ -312,4 +324,4 @@ if sys.argv[3] == 'printFeatures':
 # Write features to CSV file
 with open(sys.argv[4], 'w+') as f: 
 	for feature in features:
-		f.write(str(feature.ID) + ', ' + str(feature.jaccard_label_similarity) + ', ' + str(feature.jaccard_state_similarity) + ', ' + str(feature.cosine_similarity) + '\n')
+		f.write(str(feature.ID) + ', ' + str(feature.boolean) + ', ' + str(feature.jaccard_label_similarity) + ', ' + str(feature.jaccard_state_similarity) + ', ' + str(feature.cosine_similarity) + '\n')
